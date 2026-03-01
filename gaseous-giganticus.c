@@ -125,6 +125,7 @@ static int large_pixels = 0;
 static int export_equirect_image = 0;
 static int equirect_height = 0;
 static float cache_aware = (6.0f * XDIM * XDIM) / (float) NPARTICLES;
+static int imageNumber = 1;
 static float vortex_step_offset = 0.0f;
 
 struct timing_data {
@@ -1161,14 +1162,14 @@ static void maybe_save_equirectangular_images(char *fname, char *finalname, char
 		fname[0] = '\0';
 		return;
 	}
-
 	if (sequence_number < 0) {
-		sprintf(fname, "%s-temp-eqr.png", output_file_prefix);
-		sprintf(finalname, "%s-eqr.png", output_file_prefix);
+		sprintf(fname, "%s-temp-%d.png", output_file_prefix, imageNumber);
+		sprintf(finalname, "%s-%d.png", output_file_prefix, imageNumber);
 	} else {
-		sprintf(fname, "%s%04d-temp-eqr.png", output_file_prefix, sequence_number);
-		sprintf(finalname, "%s%04d-eqr.png", output_file_prefix, sequence_number);
+		sprintf(fname, "%s-seq-%d-temp-%d.png", output_file_prefix, sequence_number, imageNumber);
+		sprintf(finalname, "%s-seq-%d-%d.png", output_file_prefix, sequence_number, imageNumber);
 	}
+	imageNumber++;
 	h = equirect_height;
 	w = 2 * equirect_height;
 	equirect = calloc(1, h * w * 4);
