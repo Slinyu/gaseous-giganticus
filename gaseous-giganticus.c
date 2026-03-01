@@ -125,6 +125,7 @@ static int large_pixels = 0;
 static int export_equirect_image = 0;
 static int equirect_height = 0;
 static float cache_aware = (6.0f * XDIM * XDIM) / (float) NPARTICLES;
+static float vortex_step_offset = 0.0f;
 
 struct timing_data {
 	struct timeval begin;
@@ -1876,7 +1877,7 @@ static void create_vortex(int i)
 {
 	const union vec3 right_at_ya = { { 0.0f, 0.0f, 1.0f } };
 	const union vec3 up = { { 0.0f, 1.0f, 0.0f } };
-	float angle, band_speed;
+	float angle;
 
 
 	if (num_bands > 0) {
@@ -1891,16 +1892,21 @@ static void create_vortex(int i)
 		 * disturb the sampled noise gradient to make the vortices prior to
 		 * constructing the velocity field.
 		 */
-		do {
-			random_point_on_sphere(1.0, &vort[i].p.v.x, &vort[i].p.v.y, &vort[i].p.v.z);
-			vort[i].r = vortex_size + random_squared() * vortex_size_variance;
-			if (vertical_bands)
-				angle = asinf(vort[i].p.v.z);
-			else
-				angle = asinf(vort[i].p.v.y);
-			band_speed = calculate_band_speed(angle);
-		} while (fabs(band_speed) > vortex_band_threshold * band_speed_factor &&
-			fabs(angle) > 15.0 * M_PI / 180.0); /* exclude vortice within 15 deg of poles */
+
+		angle = 0.35f;
+		vortex_step_offset -= 0.005f;
+		if (vortex_step_offset <= -1.0f)
+			vortex_step_offset = 1.0f;
+
+		float longitude = vortex_step_offset * 2.0f * M_PI;
+
+		vort[i].p.v.y = sinf(angle);
+		float radius_at_alt = cosf(angle);
+		vort[i].p.v.x = radius_at_alt * cosf(longitude);
+		vort[i].p.v.z = radius_at_alt * sinf(longitude);
+
+		vort[i].r = vortex_size + random_squared() * vortex_size_variance;
+
 		if (calculate_band_speed(angle + 0.05) < calculate_band_speed(angle - 0.05))
 			vort[i].angular_vel = 2.5;
 		else
@@ -2206,6 +2212,7 @@ int main(int argc, char *argv[])
 		}
 		if (use_wstep && (i % wstep_period == 0)) {
 			w_offset += wstep;
+			create_vortices();
 			update_velocity_field(vf, w_offset, &use_wstep);
 			dump_velocity_field(vf_dump_file, vf, use_wstep);
 		}
