@@ -119,6 +119,9 @@ Hints for speeding things up:
 
 ---------- OWN COMMANDS ----------
 
+   --vortex-speed: Vortex speed every 25 frames in fraction of half the planet [-1.0, 1.0]
+   --vortex-lat: Latitude in which vortex moves [-90, 90]
+
 Own command to compile everything into the exe (without dependencies):
  make LDFLAGS="-static -static-libgcc -static-libstdc++ -lz"
 
@@ -150,5 +153,16 @@ Own Variations for Jupiter:
 
 Bestes bisher (large pixels gegen fragmente, hab jupiter original mit large pixels und no fade verglichen) -> ./gaseous-giganticus -V --sinusoidal --noise-scale 2,0 --velocity-factor 800 --bands 20 -i ./colors.png -o ./output/frame --equirectangular 1024 --vortex-band-threshold 0,01 --vortex-size 0,22 --vortices 1 --large-pixels --count 1500
 
-Mit Bewegendem Vektorfeld (wstep) -> ./gaseous-giganticus -V --sinusoidal --noise-scale 2,0 --velocity-factor 800 --bands 20 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024 --vortex-band-threshold 0,01 --vortex-size 0,22 --vortices 1 --large-pixels --count 1500 --wstep 0,1
+Mit Bewegendem Vektorfeld (wstep) -> ./gaseous-giganticus -V --sinusoidal --noise-scale 2,0 --velocity-factor 800 --bands 20 -i ./colors.png -o ./output/frame --equirectangular 1024 --vortex-band-threshold 0,01 --vortex-size 0,22 --vortices 1 --large-pixels --count 1500 --wstep 0,1
 
+Mit input parametern für vortex: ./gaseous-giganticus -V --sinusoidal --noise-scale 2,0 --velocity-factor 800 --bands 20 -i ./colors.png -o ./output/frame --equirectangular 1024 --vortex-band-threshold 0,01 --vortex-size 0,22 --vortices 1 --large-pixels --count 1500 --wstep 0,1 --vortex-speed 0,0001 --vortex-lat -22 --image-save-period 1
+
+Angepasst an die realität mit 600 frames insgesamt (ein frame entspricht 4.95 echt tagen): ./gaseous-giganticus -V --sinusoidal --noise-scale 2,0 --velocity-factor 1000 --bands 20 -i ./colors.png -o ./output/frame --equirectangular 1024 --vortex-band-threshold 0,01 --vortex-size 0,22 --vortices 1 --large-pixels --count 6000 --wstep -0,125 --vortex-speed 0,0016 --vortex-lat -22 --image-save-period 10
+
+Angepasst an die realität mit 60 frames insgesamt (ein frame entspricht 49.5 echt tagen): ./gaseous-giganticus -V --sinusoidal --noise-scale 1,0 --velocity-factor 10000 --bands 20 -i ./colors.png -o ./output/frame --equirectangular 1024 --vortex-band-threshold 0,01 --vortex-size 0,22 --vortices 1 --large-pixels --count 600 --wstep -1,25 --vortex-speed 0,016 --vortex-lat -22 --image-save-period 10
+
+Low Res Test (Wirbel passt so mit speed 1/600, auf 600 Frames genormt, 4.95 tage / Frame): ./gaseous-giganticus -V --sinusoidal --noise-scale 2,0 --velocity-factor 800 --bands 20 -i ./colors.png -o ./output/frame --equirectangular 128 --vortex-band-threshold 0,01 --vortex-size 0,22 --vortices 1 --large-pixels --count 6000 --wstep -0,125 --vortex-speed -0,0016666666666667 --vortex-lat -22 --image-save-period 10 --particles 300000 --vfdim 256
+
+Higher Res Test (Wirbel passt so mit speed 1/600, auf 600 Frames genormt, 4.95 tage / Frame): ./gaseous-giganticus -V --sinusoidal --noise-scale 2,0 --velocity-factor 800 --bands 20 -i ./colors.png -o ./output/frame --equirectangular 256 --vortex-size 0,22 --vortices 1 --large-pixels --count 8000 --wstep -0,01 --vortex-speed -0,0016666666666667 --vortex-lat -22 --image-save-period 10 --vfdim 512
+
+test Mit Rot Speed Vortex: ./gaseous-giganticus -V --sinusoidal --noise-scale 2,0 --velocity-factor 800 --bands 20 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 256 --vortex-size 0,22 --vortices 1 --large-pixels --count 8000 --wstep -0,01 --vortex-speed -0,1 --vortex-lat -22 --image-save-period 10 --vfdim 512 --vortex-rot-speed 10,0

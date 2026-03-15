@@ -125,7 +125,8 @@ static int large_pixels = 0;
 static int export_equirect_image = 0;
 static int equirect_height = 0;
 static float cache_aware = (6.0f * XDIM * XDIM) / (float) NPARTICLES;
-static int imageNumber = 1;	// Will be incremented every time an image is saved, used in file name when saving images.
+static int imageNumber = 1;		// Will be incremented every time an image is saved, used in file name when saving images.
+static float vortex_step_offset = 0.0f;		// Used to move the vortex ofer time. Represents the longitude.
 
 struct timing_data {
 	struct timeval begin;
@@ -186,6 +187,9 @@ static int nvortices = 0;
 static float vortex_size = 0.04;
 static float vortex_size_variance =  0.02;
 static float vortex_band_threshold = 0.2;
+static float vortex_speed = 0.0;		// Used to set the speed of the vortex, can be set via input parameters.
+static float vortex_rot_speed = 0.0;	// Used to set the rotation speed of the vortex, can be set via input parameters.
+static float vortex_lat = 0.0;			// Used to set the latitude of the vortex, can be set via input parameters.
 
 static void backspace(int columns)
 {
@@ -1443,6 +1447,9 @@ static void usage(void)
 #define VORTEX_BAND_THRESHOLD_OPTION 1002
 #define DUMP_FLOWMAP_OPTION 1003
 #define TRAP_NANS_OPTION 1004
+#define VORTEX_SPEED_OPTION 1005		// Used to store read parameters from input.
+#define VORTEX_ROT_SPEED_OPTION 1006
+#define VORTEX_LAT_OPTION 1007
 
 static struct option long_options[] = {
 	{ "pole-attenuation", required_argument, NULL, 'a' },
@@ -1490,6 +1497,9 @@ static struct option long_options[] = {
 	{ "equirectangular", required_argument, NULL, 'E' },
 	{ "dump-flowmap", required_argument, NULL, DUMP_FLOWMAP_OPTION },
 	{ "trap-nans", no_argument, NULL, TRAP_NANS_OPTION },
+	{ "vortex-speed", required_argument, NULL, VORTEX_SPEED_OPTION },		// Allows to set the vortex speed.
+	{ "vortex-rot-speed", required_argument, NULL, VORTEX_ROT_SPEED_OPTION },	// Allows to set vortex rotation speed.
+	{ "vortex-lat", required_argument, NULL, VORTEX_LAT_OPTION },	// Allows to set vortex latitude.
 	{ 0, 0, 0, 0 },
 };
 
@@ -1791,6 +1801,15 @@ static void process_options(int argc, char *argv[])
 		case TRAP_NANS_OPTION:
 			//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 			break;
+		case VORTEX_SPEED_OPTION:
+			process_float_option("vortex-speed", optarg, &vortex_speed);	// Processes the input parameters and writes into the variable.
+			break;
+		case VORTEX_ROT_SPEED_OPTION:
+			process_float_option("vortex-rot-speed", optarg, &vortex_rot_speed);
+			break;
+		case VORTEX_LAT_OPTION:
+			process_float_option("vortex-lat", optarg, &vortex_lat);
+			break;
 		default:
 			fprintf(stderr, "unknown option '%s'\n",
 				option_index > 0 && option_index - 1 < argc &&
@@ -1862,7 +1881,7 @@ static void create_vortex(int i)
 {
 	const union vec3 right_at_ya = { { 0.0f, 0.0f, 1.0f } };
 	const union vec3 up = { { 0.0f, 1.0f, 0.0f } };
-	float angle, band_speed;
+	float angle;
 
 
 	if (num_bands > 0) {
@@ -1877,20 +1896,25 @@ static void create_vortex(int i)
 		 * disturb the sampled noise gradient to make the vortices prior to
 		 * constructing the velocity field.
 		 */
-		do {
-			random_point_on_sphere(1.0, &vort[i].p.v.x, &vort[i].p.v.y, &vort[i].p.v.z);
-			vort[i].r = vortex_size + random_squared() * vortex_size_variance;
-			if (vertical_bands)
-				angle = asinf(vort[i].p.v.z);
-			else
-				angle = asinf(vort[i].p.v.y);
-			band_speed = calculate_band_speed(angle);
-		} while (fabs(band_speed) > vortex_band_threshold * band_speed_factor &&
-			fabs(angle) > 15.0 * M_PI / 180.0); /* exclude vortice within 15 deg of poles */
+	
+		vortex_step_offset += vortex_speed;		// Increments the offset of the vortex when it is created.
+		if (vortex_step_offset <= -1.0f)		// Keeps it in the allowed range of -1.0 to 1.0, to later be 
+			vortex_step_offset = 1.0f;			// within the equirectangular 2D sphere projection.
+
+		angle = -vortex_lat * M_PI / 180.0f;	// Convert from degrees to radians (RAD = DEG * PI / 180).
+		float longitude = vortex_step_offset * 2.0f * M_PI;		// Converts the offset to a longitude value in radians.
+
+		vort[i].p.v.y = sinf(angle);
+		float radius_at_alt = cosf(angle);
+		vort[i].p.v.x = radius_at_alt * cosf(longitude);
+		vort[i].p.v.z = radius_at_alt * sinf(longitude);
+
+		vort[i].r = vortex_size + random_squared() * vortex_size_variance;
+
 		if (calculate_band_speed(angle + 0.05) < calculate_band_speed(angle - 0.05))
-			vort[i].angular_vel = 2.5;
+			vort[i].angular_vel = vortex_rot_speed;	// Use multiplief from input for angular velocity.
 		else
-			vort[i].angular_vel = -2.5;
+			vort[i].angular_vel = -vortex_rot_speed;
 	} else {
 		random_point_on_sphere(1.0, &vort[i].p.v.x, &vort[i].p.v.y, &vort[i].p.v.z);
 		vort[i].r = vortex_size + random_squared() * vortex_size_variance;
@@ -2192,6 +2216,7 @@ int main(int argc, char *argv[])
 		}
 		if (use_wstep && (i % wstep_period == 0)) {
 			w_offset += wstep;
+			create_vortices();	// Create new vortices before updating the velocity field.
 			update_velocity_field(vf, w_offset, &use_wstep);
 			dump_velocity_field(vf_dump_file, vf, use_wstep);
 		}
