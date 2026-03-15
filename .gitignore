@@ -1,0 +1,9 @@
+/output/
+
+gaseous-giganticus.o
+mathutils.o
+mtwist.o
+open-simplex-noise.o
+png_utils.o
+pthread_util.o
+quat.o

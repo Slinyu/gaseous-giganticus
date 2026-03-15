@@ -1803,7 +1803,7 @@ static void process_options(int argc, char *argv[])
 			flowmap_dump_file = optarg;
 			break;
 		case TRAP_NANS_OPTION:
-			feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+			//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 			break;
 		default:
 			fprintf(stderr, "unknown option '%s'\n",

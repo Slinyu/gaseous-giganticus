@@ -33,7 +33,7 @@ endif
 ifeq (${CC},clang)
 RDYNAMIC=
 else
-RDYNAMIC=-rdynamic
+#RDYNAMIC=-rdynamic
 endif
 
 ifeq (${V},1)
