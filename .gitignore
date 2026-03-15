@@ -7,3 +7,4 @@ open-simplex-noise.o
 png_utils.o
 pthread_util.o
 quat.o
+gaseous-giganticus.exe

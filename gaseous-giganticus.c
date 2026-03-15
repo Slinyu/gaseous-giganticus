@@ -125,6 +125,7 @@ static int large_pixels = 0;
 static int export_equirect_image = 0;
 static int equirect_height = 0;
 static float cache_aware = (6.0f * XDIM * XDIM) / (float) NPARTICLES;
+static int imageNumber = 1;	// Will be incremented every time an image is saved, used in file name when saving images.
 
 struct timing_data {
 	struct timeval begin;
@@ -1162,12 +1163,13 @@ static void maybe_save_equirectangular_images(char *fname, char *finalname, char
 	}
 
 	if (sequence_number < 0) {
-		sprintf(fname, "%s-temp-eqr.png", output_file_prefix);
-		sprintf(finalname, "%s-eqr.png", output_file_prefix);
+		sprintf(fname, "%s-temp-%d.png", output_file_prefix, imageNumber);
+		sprintf(finalname, "%s-%d.png", output_file_prefix, imageNumber);
 	} else {
-		sprintf(fname, "%s%04d-temp-eqr.png", output_file_prefix, sequence_number);
-		sprintf(finalname, "%s%04d-eqr.png", output_file_prefix, sequence_number);
+		sprintf(fname, "%s-temp-%d.png", output_file_prefix, imageNumber);
+		sprintf(finalname, "%s-%d.png", output_file_prefix, imageNumber);
 	}
+	imageNumber++;	// Increment for next filename.
 	h = equirect_height;
 	w = 2 * equirect_height;
 	equirect = calloc(1, h * w * 4);
@@ -1229,36 +1231,20 @@ static void rename_output_files(char *oldname[], char *newname[], int nfiles)
 static void save_output_images(char *output_file_prefix, int sequence_number, unsigned char *image[6], int has_alpha,
 			struct timing_data *timing)
 {
-	int i;
-	char tempname[7][PATH_MAX];
-	char finalname[7][PATH_MAX];
-	char *t[7], *f[7];
+	char tempname[1][PATH_MAX];
+	char finalname[1][PATH_MAX];
+	char *t[1], *f[1];
 	char *msg = "Saving Images";
 
 	gettimeofday(&timing->begin, NULL);
 	printf("%s", msg); fflush(stdout);
-	for (i = 0; i < 6; i++) {
-		if (sequence_number < 0) {
-			sprintf(tempname[i], "%s-temp%d.png", output_file_prefix, i);
-			sprintf(finalname[i], "%s%d.png", output_file_prefix, i);
-		} else {
-			sprintf(tempname[i], "%s-temp%04d-%d.png", output_file_prefix, i, sequence_number);
-			sprintf(finalname[i], "%s%04d-%d.png", output_file_prefix, i, sequence_number);
-		}
-		t[i] = tempname[i];
-		f[i] = finalname[i];
-		if (png_utils_write_png_image(tempname[i], image[i], DIM, DIM, has_alpha, 0)) {
-			fprintf(stderr, "Failed to write %s\n", tempname[i]);
-			unlink(tempname[i]);
-			continue;
-		}
-	}
-	tempname[6][0] = '\0';
-	maybe_save_equirectangular_images(tempname[6], finalname[6], output_file_prefix,
+
+	tempname[0][0] = '\0';
+	maybe_save_equirectangular_images(tempname[0], finalname[0], output_file_prefix,
 						sequence_number, image, has_alpha);
-	t[6] = tempname[6];
-	f[6] = finalname[6];
-	rename_output_files(t, f, 7);
+	t[0] = tempname[0];
+	f[0] = finalname[0];
+	rename_output_files(t, f, 1);
 	backspace(strlen(msg));
 	printf("o");
 	fflush(stdout);
