@@ -165,4 +165,80 @@ Low Res Test (Wirbel passt so mit speed 1/600, auf 600 Frames genormt, 4.95 tage
 
 Higher Res Test (Wirbel passt so mit speed 1/600, auf 600 Frames genormt, 4.95 tage / Frame): ./gaseous-giganticus -V --sinusoidal --noise-scale 2,0 --velocity-factor 800 --bands 20 -i ./colors.png -o ./output/frame --equirectangular 256 --vortex-size 0,22 --vortices 1 --large-pixels --count 8000 --wstep -0,01 --vortex-speed -0,0016666666666667 --vortex-lat -22 --image-save-period 10 --vfdim 512
 
-test Mit Rot Speed Vortex: ./gaseous-giganticus -V --sinusoidal --noise-scale 2,0 --velocity-factor 800 --bands 20 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 256 --vortex-size 0,22 --vortices 1 --large-pixels --count 8000 --wstep -0,01 --vortex-speed -0,1 --vortex-lat -22 --image-save-period 10 --vfdim 512 --vortex-rot-speed 10,0
+test Mit Rot Speed Vortex: ./gaseous-giganticus -V --sinusoidal --noise-scale 2,0 --velocity-factor 800 --bands 20 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024 --vortex-size 0,22 --vortices 1 --large-pixels --count 8000 --wstep -0,01 --vortex-speed -0,1 --vortex-lat -22 --image-save-period 10 --vortex-rot-speed 1,0
+
+Neuer Test: ./gaseous-giganticus -V --sinusoidal --noise-scale 2,0 --velocity-factor 800 --bands 20 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024 --vortex-size 0,22 --vortices 1 --large-pixels --count 8000 --wstep -0,005 --vortex-speed -0,0016666666666667 --vortex-lat -22 --image-save-period 10 --vortex-rot-speed 2,0
+
+------- FOR TESTING -------
+
+0. ---> For orientation (Steven Cameron Jupiter):
+
+./gaseous-giganticus -V --sinusoidal --noise-scale 2,8 --velocity-factor 800 --bands 20 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024
+
+
+1. ---> Start Point (Example from above):
+
+./gaseous-giganticus -V --sinusoidal --noise-scale 2,5 --velocity-factor 1300 --bands 10 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024
+
+
+2. ---> Correct Number of Bands:
+
+./gaseous-giganticus -V --sinusoidal --noise-scale 2,5 --velocity-factor 1300 --bands 12 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024
+
+
+3. ---> Correct Jet Speed (Normalized to N=500 Frames in final animation -> jet (not equatorial) crossing planet in 160/2970 * N = 26.94 Frames), also output image every 10 iterations :
+
+-> Band Speed Next to Equator (band-vel-factor -24,0 is perfect, negative to have equatorial jet go from west to east):
+./gaseous-giganticus -V --sinusoidal --noise-scale 2,5 --velocity-factor 1300 --bands 12 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024 --image-save-period 10 --band-vel-factor -24,0
+
+-> Speed Fallof Towards Poles (have been tested for, is not mathematically like 1/20 of equator speed or smth; set to max: 1,0):
+./gaseous-giganticus -V --sinusoidal --noise-scale 2,5 --velocity-factor 1300 --bands 12 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024 --image-save-period 10 --band-vel-factor -24,0 --pole-attenuation 1,0
+
+
+4. ---> Correct Noise:
+
+-> Noise detail (fbm falloff, 0,1 means few details, 0,9 means high details, details means more small noise vortices; trial and error -> fvm 0,7 is good detail level)
+./gaseous-giganticus -V --sinusoidal --noise-scale 2,5 --velocity-factor 1300 --bands 12 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024 --image-save-period 10 --band-vel-factor -24,0 --pole-attenuation 1,0 --fbm-falloff 0,5
+
+-> Noise scale (means how much noise, 2,2 seems like a good value):
+./gaseous-giganticus -V --sinusoidal --velocity-factor 1300 --bands 12 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024 --image-save-period 10 --band-vel-factor -24,0 --pole-attenuation 1,0 --fbm-falloff 0,5 --noise-scale 2,2
+
+-> Velocity Factor (how strong the noise vortices influence the actual bands -> speed of particles in vortex):
+./gaseous-giganticus -V --sinusoidal --velocity-factor 1300 --bands 12 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024 --image-save-period 10 --band-vel-factor -24,0 --pole-attenuation 1,0 --fbm-falloff 0,5 --noise-scale 2,2 --velocity-factor 800
+
+[ONLY MAYBE] -> Slightly move noise field to move the edge vortices (instead of just staying in the same place):
+./gaseous-giganticus -V --sinusoidal --velocity-factor 1300 --bands 12 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024 --image-save-period 10 --band-vel-factor -24,0 --pole-attenuation 1,0 --fbm-falloff 0,5 --noise-scale 2,2 --velocity-factor 800 --wstep 0,002
+
+
+
+5. ---> Vortex. Artificially place 1 vortex with size 0,22 (tested what value is good for GRS). Placed it at lat 22°S (correct), with speed -0,002 (1/N speed. So one circumnavigation at N=500 frames). Vortex rot speed 5,5 for good shape (not real wind speed).
+
+./gaseous-giganticus -V --sinusoidal --bands 12 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024 --image-save-period 10 --band-vel-factor -24,0 --pole-attenuation 1,0  --noise-scale 2,2 --velocity-factor 800 --fbm-falloff 0,5 --vortices 1 --vortex-size 0,25 --vortex-lat -22 --vortex-speed 0,002 --vortex-rot-speed 5,5 --wstep 0,0
+
+
+
+6. ---> Reduce Fragments
+
+-> Large Pixels to reduce fragments:
+./gaseous-giganticus -V --sinusoidal --bands 12 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024 --image-save-period 10 --band-vel-factor -24,0 --pole-attenuation 1,0  --noise-scale 2,2 --velocity-factor 800 --fbm-falloff 0,5 --vortices 1 --vortex-size 0,25 --vortex-lat -22 --vortex-speed 0,002 --vortex-rot-speed 5,5 --wstep 0,0 --large-pixels
+
+
+
+7. ---> Final Render (500 Frames + 100 Fade Frames + 50 Frames to let Simulation balance at start)
+
+./gaseous-giganticus -V --sinusoidal --bands 12 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024 --image-save-period 10 --band-vel-factor -24,0 --pole-attenuation 1,0  --noise-scale 2,2 --velocity-factor 800 --fbm-falloff 0,5 --vortices 1 --vortex-size 0,25 --vortex-lat -22 --vortex-speed -0,002 --vortex-rot-speed 5,5 --wstep 0,003 --large-pixels --count 7500
+
+
+A Unrealistic: --> Physikalisch incorrekter test aber mit wirbel korrekt (laufzeit 500 frames wie ebend):
+
+./gaseous-giganticus -V --sinusoidal --bands 12 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024 --image-save-period 10 --band-vel-factor -2,4 --pole-attenuation 1,0  --noise-scale 2,0 --velocity-factor 800 --fbm-falloff 0,5 --vortices 1 --vortex-size 0,22 --vortex-lat -22 --vortex-speed -0,001 --vortex-rot-speed 1,0 --wstep 0,01 --large-pixels --count 7500
+
+
+B Unrealistic: --> Physikalisch incorrekter test aber mit wirbel korrekt (laufzeit 500 frames wie ebend):
+
+./gaseous-giganticus -V --sinusoidal --bands 12 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024 --image-save-period 10 --band-vel-factor -2,4 --pole-attenuation 1,0  --noise-scale 2,0 --velocity-factor 400 --fbm-falloff 0,5 --vortices 1 --vortex-size 0,22 --vortex-lat -22 --vortex-speed -0,002 --vortex-rot-speed 1,0 --wstep 0,002 --large-pixels --count 7500
+
+
+C Unrealistic: --> Physikalisch incorrekter test aber mit wirbel korrekt (laufzeit 500 frames wie ebend)[JETZT MIT KORREKTEM VORTEX SPEED 0,002]:
+
+./gaseous-giganticus -V --sinusoidal --bands 12 -i ./input/jupiter-colors.png -o ./output/frame --equirectangular 1024 --image-save-period 10 --band-vel-factor -2,4 --pole-attenuation 1,0  --noise-scale 2,0 --velocity-factor 400 --fbm-falloff 0,5 --vortices 1 --vortex-size 0,22 --vortex-lat -22 --vortex-speed -0,002 --vortex-rot-speed 1,0 --wstep -0,003 --large-pixels --count 7500
